@@ -1,3 +1,6 @@
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../../auth/auth.config';
+
 const GRAPH_API_BASE = 'https://graph.microsoft.com/v1.0';
 
 export const dynamic = 'force-dynamic';

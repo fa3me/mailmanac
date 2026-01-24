@@ -1,5 +1,5 @@
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]/route';
+import { authOptions } from '../auth/auth.config';
 
 const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1';
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
