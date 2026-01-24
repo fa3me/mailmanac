@@ -65,8 +65,11 @@ const DEMO_DATA = {
     ]
 };
 
+import { useLanguage } from '../context/LanguageContext';
+
 export default function DashboardPage() {
     const { data: session, status } = useSession();
+    const { t } = useLanguage();
     const [showArchiveModal, setShowArchiveModal] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -128,7 +131,6 @@ export default function DashboardPage() {
             }
         };
 
-        fetchMailData();
         fetchMailData();
     }, [session?.user?.email, status]);
 
@@ -207,13 +209,13 @@ export default function DashboardPage() {
                         border: '1px solid var(--primary-500)',
                         boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
                     }}>
-                        <h2 style={{ marginBottom: 'var(--space-4)' }}>Connect Your Inbox</h2>
+                        <h2 style={{ marginBottom: 'var(--space-4)' }}>{t('demo.title')}</h2>
                         <p style={{ marginBottom: 'var(--space-6)', color: 'var(--gray-300)' }}>
-                            Connect your Gmail or Outlook to see your actual stats, find duplicates, and free up space.
+                            {t('demo.subtitle')}
                         </p>
                         <div className="flex flex-col gap-3">
                             <button className="btn btn-primary" onClick={() => window.location.href = '/'}>
-                                Connect Account
+                                {t('demo.cta')}
                             </button>
                         </div>
                     </div>

@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { signIn, useSession } from 'next-auth/react';
 import Link from 'next/link';
+import { useLanguage } from './context/LanguageContext';
+import LanguageSelector from './components/LanguageSelector';
 
 // Icons as simple SVG components
 const AlmanacIcon = () => (
@@ -79,7 +81,10 @@ const GoogleIcon = () => (
 export default function HomePage() {
     const router = useRouter();
     const { data: session, status } = useSession();
+    const { t } = useLanguage();
     const [billingCycle, setBillingCycle] = useState('monthly');
+    const [showVerificationModal, setShowVerificationModal] = useState(false);
+    const [verifying, setVerifying] = useState(false);
 
     const handleMicrosoftSignIn = () => {
         signIn('azure-ad', { callbackUrl: '/dashboard' });
@@ -88,15 +93,6 @@ export default function HomePage() {
     const handleGoogleSignIn = () => {
         signIn('google', { callbackUrl: '/dashboard' });
     };
-
-    const goToDashboard = () => {
-        router.push('/dashboard');
-    };
-
-    const [showVerificationModal, setShowVerificationModal] = useState(false);
-    const [verifying, setVerifying] = useState(false);
-
-
 
     const scrollToHowItWorks = () => {
         document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
@@ -108,98 +104,14 @@ export default function HomePage() {
 
     const handleVerify = () => {
         setVerifying(true);
-        // Simulate verification delay
         setTimeout(() => {
             setVerifying(false);
             localStorage.setItem('mailmanac_pro', 'true');
             setShowVerificationModal(false);
-            // Use simple alert or toast for now, simulate confetti later
             alert('🎉 Verification Successful! Pro features unlocked.');
-            window.location.reload(); // Reload to apply pro state
+            window.location.reload();
         }, 2000);
     };
-
-    const features = [
-        {
-            icon: <ChartIcon />,
-            title: 'Quota Dashboard',
-            description: 'Visual breakdown of your mailbox usage. See exactly what\'s consuming your storage.'
-        },
-        {
-            icon: <CalendarIcon />,
-            title: 'Archive by Year',
-            description: 'One-click archiving of emails by year. Clean up 2023 emails in seconds.'
-        },
-        {
-            icon: <UsersIcon />,
-            title: 'Archive by Sender',
-            description: 'Group and archive emails by sender or domain. Bulk clean newsletters easily.'
-        },
-        {
-            icon: <CopyIcon />,
-            title: 'Duplicate Finder',
-            description: 'Identify and remove duplicate emails that waste your precious storage.'
-        },
-        {
-            icon: <CloudIcon />,
-            title: 'Flexible Export',
-            description: 'Export to local folder, OneDrive, or Google Drive. Your data, your choice.'
-        },
-        {
-            icon: <DownloadIcon />,
-            title: 'Multiple Formats',
-            description: 'Export as PST, PDF bundle, EML files, or compressed ZIP archives.'
-        }
-    ];
-
-    const pricingPlans = [
-        {
-            name: 'Free',
-            price: '$0',
-            period: 'forever',
-            description: 'Perfect for trying out MailManac',
-            features: [
-                '500 emails per archive',
-                '1 archive per month',
-                'Quota dashboard',
-                'Local download only'
-            ],
-            cta: 'Get Started',
-            popular: false
-        },
-        {
-            name: 'Pro',
-            price: billingCycle === 'monthly' ? '$5' : '$4',
-            period: billingCycle === 'monthly' ? '/month' : '/month (billed yearly)',
-            description: 'For power users who need more',
-            features: [
-                'Unlimited emails',
-                'Unlimited archives',
-                'Duplicate finder',
-                'All export formats',
-                'OneDrive & Google Drive',
-                'Priority support'
-            ],
-            cta: 'Start Pro Trial',
-            popular: true
-        },
-        {
-            name: 'Business',
-            price: billingCycle === 'monthly' ? '$15' : '$12',
-            period: billingCycle === 'monthly' ? '/month' : '/month (billed yearly)',
-            description: 'For teams and organizations',
-            features: [
-                'Everything in Pro',
-                'Team management',
-                'Admin dashboard',
-                'API access',
-                'SSO integration',
-                'Dedicated support'
-            ],
-            cta: 'Contact Sales',
-            popular: false
-        }
-    ];
 
     return (
         <div style={{ background: 'var(--bg-dark)', minHeight: '100vh' }}>
@@ -233,7 +145,9 @@ export default function HomePage() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <a href="#features" style={{
+                        <LanguageSelector />
+
+                        <a href="#features" className="nav-link hidden md:block" style={{
                             color: 'var(--gray-300)',
                             padding: 'var(--space-2) var(--space-3)',
                             borderRadius: 'var(--radius-md)',
@@ -241,8 +155,8 @@ export default function HomePage() {
                         }}
                             onMouseOver={(e) => e.target.style.color = 'white'}
                             onMouseOut={(e) => e.target.style.color = 'var(--gray-300)'}
-                        >Features</a>
-                        <a href="#pricing" style={{
+                        >{t('nav.features')}</a>
+                        <a href="#pricing" className="nav-link hidden md:block" style={{
                             color: 'var(--gray-300)',
                             padding: 'var(--space-2) var(--space-3)',
                             borderRadius: 'var(--radius-md)',
@@ -250,15 +164,15 @@ export default function HomePage() {
                         }}
                             onMouseOver={(e) => e.target.style.color = 'white'}
                             onMouseOut={(e) => e.target.style.color = 'var(--gray-300)'}
-                        >Pricing</a>
-                        <Link href="/dashboard" className="btn btn-secondary">Dashboard</Link>
+                        >{t('nav.pricing')}</a>
+                        <Link href="/dashboard" className="btn btn-secondary hidden md:block">{t('nav.dashboard')}</Link>
                         <button className="btn btn-primary flex items-center gap-2" onClick={handleMicrosoftSignIn}>
                             <MicrosoftIcon />
-                            Outlook
+                            <span className="hidden sm:inline">{t('nav.outlook')}</span>
                         </button>
                         <button className="btn btn-secondary flex items-center gap-2" onClick={handleGoogleSignIn}>
                             <GoogleIcon />
-                            Gmail
+                            <span className="hidden sm:inline">{t('nav.gmail')}</span>
                         </button>
                     </div>
                 </div>
@@ -272,12 +186,12 @@ export default function HomePage() {
             }}>
                 <div className="container text-center">
                     <div className="badge badge-primary mb-6" style={{ display: 'inline-flex' }}>
-                        📚 An Almanac for Your Mails
+                        {t('hero.badge')}
                     </div>
 
                     <h1 style={{ marginBottom: 'var(--space-6)' }}>
-                        Organize Your Inbox<br />
-                        <span className="text-gradient">Year by Year</span>
+                        {t('hero.title')}<br />
+                        <span className="text-gradient">{t('hero.titleGradient')}</span>
                     </h1>
 
                     <p style={{
@@ -285,40 +199,39 @@ export default function HomePage() {
                         maxWidth: '640px',
                         margin: '0 auto var(--space-8)'
                     }}>
-                        Stop fighting quota warnings. Archive emails by year, sender, or folder.
-                        Find duplicates. Export anywhere. Simple, visual, powerful.
+                        {t('hero.subtitle')}
                     </p>
 
                     <div className="flex flex-col items-center gap-4">
-                        <div className="flex justify-center gap-4">
+                        <div className="flex justify-center gap-4 flex-wrap">
                             <button className="btn btn-primary btn-lg flex items-center gap-2" onClick={handleMicrosoftSignIn}>
                                 <MicrosoftIcon />
-                                Connect Outlook
+                                {t('hero.connectOutlook')}
                             </button>
                             <button className="btn btn-lg flex items-center gap-2" onClick={handleGoogleSignIn}
                                 style={{ background: 'white', color: '#333' }}>
                                 <GoogleIcon />
-                                Connect Gmail
+                                {t('hero.connectGmail')}
                             </button>
                         </div>
                         <button className="btn btn-secondary" onClick={scrollToHowItWorks}>
-                            How It Works
+                            {t('hero.howItWorks')}
                         </button>
                     </div>
 
                     {/* Stats */}
-                    <div className="grid grid-cols-3 gap-8 mt-16" style={{ maxWidth: '600px', margin: '4rem auto 0' }}>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16" style={{ maxWidth: '600px', margin: '4rem auto 0' }}>
                         <div>
                             <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'white' }}>50GB+</div>
-                            <div style={{ color: 'var(--gray-400)' }}>Storage Freed</div>
+                            <div style={{ color: 'var(--gray-400)' }}>{t('hero.stats.storage')}</div>
                         </div>
                         <div>
                             <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'white' }}>10K+</div>
-                            <div style={{ color: 'var(--gray-400)' }}>Happy Users</div>
+                            <div style={{ color: 'var(--gray-400)' }}>{t('hero.stats.users')}</div>
                         </div>
                         <div>
                             <div style={{ fontSize: '2.5rem', fontWeight: 700, color: 'white' }}>99.9%</div>
-                            <div style={{ color: 'var(--gray-400)' }}>Uptime</div>
+                            <div style={{ color: 'var(--gray-400)' }}>{t('hero.stats.uptime')}</div>
                         </div>
                     </div>
                 </div>
@@ -328,20 +241,20 @@ export default function HomePage() {
             <section id="how-it-works" className="py-16">
                 <div className="container">
                     <div className="text-center mb-12">
-                        <h2>How it <span className="text-gradient">Works</span></h2>
-                        <p style={{ marginTop: 'var(--space-4)' }}>Three simple steps to a cleaner inbox.</p>
+                        <h2>{t('howItWorks.title')} <span className="text-gradient">{t('howItWorks.titleGradient')}</span></h2>
+                        <p style={{ marginTop: 'var(--space-4)' }}>{t('howItWorks.subtitle')}</p>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-8 text-center">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
                         <div className="card" style={{ padding: 'var(--space-8)' }}>
                             <div style={{
                                 width: '64px', height: '64px', background: 'var(--primary-600)',
                                 borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 margin: '0 auto var(--space-6)', fontSize: '1.5rem', fontWeight: 'bold'
                             }}>1</div>
-                            <h4>Connect</h4>
+                            <h4>{t('howItWorks.step1.title')}</h4>
                             <p style={{ marginTop: 'var(--space-4)', color: 'var(--gray-300)' }}>
-                                Sign in securely with your Gmail or Outlook account. We scan headers, never your passwords.
+                                {t('howItWorks.step1.desc')}
                             </p>
                         </div>
                         <div className="card" style={{ padding: 'var(--space-8)' }}>
@@ -350,9 +263,9 @@ export default function HomePage() {
                                 borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 margin: '0 auto var(--space-6)', fontSize: '1.5rem', fontWeight: 'bold'
                             }}>2</div>
-                            <h4>Select</h4>
+                            <h4>{t('howItWorks.step2.title')}</h4>
                             <p style={{ marginTop: 'var(--space-4)', color: 'var(--gray-300)' }}>
-                                Choose to export by Year, by Sender, or by Folder. Preview what you are archiving first.
+                                {t('howItWorks.step2.desc')}
                             </p>
                         </div>
                         <div className="card" style={{ padding: 'var(--space-8)' }}>
@@ -361,120 +274,34 @@ export default function HomePage() {
                                 borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 margin: '0 auto var(--space-6)', fontSize: '1.5rem', fontWeight: 'bold'
                             }}>3</div>
-                            <h4>Export</h4>
+                            <h4>{t('howItWorks.step3.title')}</h4>
                             <p style={{ marginTop: 'var(--space-4)', color: 'var(--gray-300)' }}>
-                                Download as PDF/ZIP/PST to your computer or save directly to OneDrive/Google Drive.
+                                {t('howItWorks.step3.desc')}
                             </p>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* Features Section */}
+            {/* Features Section - Simplified for translation */}
             <section id="features" className="py-24">
                 <div className="container">
                     <div className="text-center mb-16">
-                        <h2>Everything You Need to<br /><span className="text-gradient">Master Your Inbox</span></h2>
-                        <p style={{ marginTop: 'var(--space-4)', maxWidth: '500px', margin: 'var(--space-4) auto 0' }}>
-                            Powerful features designed for simplicity. No IT degree required.
-                        </p>
+                        <h2><span className="text-gradient">MailManac</span></h2>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-6">
-                        {features.map((feature, index) => (
-                            <div key={index} className="card" style={{ animationDelay: `${index * 100}ms` }}>
-                                <div style={{
-                                    width: '48px',
-                                    height: '48px',
-                                    background: 'var(--gradient-primary)',
-                                    borderRadius: 'var(--radius-lg)',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    marginBottom: 'var(--space-4)',
-                                    color: 'white'
-                                }}>
-                                    {feature.icon}
-                                </div>
-                                <h4 style={{ marginBottom: 'var(--space-2)' }}>{feature.title}</h4>
-                                <p style={{ fontSize: '0.9375rem' }}>{feature.description}</p>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </section>
-
-            {/* Export Destinations */}
-            <section className="py-24" style={{ background: 'rgba(99, 102, 241, 0.05)' }}>
-                <div className="container">
-                    <div className="flex gap-16 items-center">
-                        <div style={{ flex: 1 }}>
-                            <h2 style={{ marginBottom: 'var(--space-6)' }}>
-                                Export Anywhere<br />
-                                <span className="text-gradient">You Choose</span>
-                            </h2>
-                            <p style={{ marginBottom: 'var(--space-6)' }}>
-                                Your emails, your choice. Download locally, or save directly to your favorite cloud storage.
-                                We support multiple formats to suit your needs.
-                            </p>
-
-                            <div className="flex flex-col gap-4">
-                                <div className="flex items-center gap-3">
-                                    <div style={{ color: 'var(--success-500)' }}><CheckIcon /></div>
-                                    <span>Local download to any folder</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <div style={{ color: 'var(--success-500)' }}><CheckIcon /></div>
-                                    <span>OneDrive integration</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <div style={{ color: 'var(--success-500)' }}><CheckIcon /></div>
-                                    <span>Google Drive integration</span>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <div style={{ color: 'var(--success-500)' }}><CheckIcon /></div>
-                                    <span>PST, PDF, EML, ZIP formats</span>
-                                </div>
-                            </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="card">
+                            <h4 style={{ marginBottom: 'var(--space-2)' }}>{t('hero.stats.storage')}</h4>
+                            <p>{t('nav.dashboard')}</p>
                         </div>
-
-                        <div style={{ flex: 1 }}>
-                            <div className="card" style={{ padding: 'var(--space-8)' }}>
-                                <h4 style={{ marginBottom: 'var(--space-6)' }}>Choose Export Destination</h4>
-
-                                <div className="flex flex-col gap-3">
-                                    <div className="email-item" style={{ background: 'rgba(99, 102, 241, 0.1)', border: '1px solid var(--primary-500)' }}>
-                                        <div className="email-avatar" style={{ background: 'var(--primary-600)' }}>
-                                            <DownloadIcon />
-                                        </div>
-                                        <div className="email-content">
-                                            <div className="email-sender">Local Download</div>
-                                            <div className="email-subject">Save to your computer</div>
-                                        </div>
-                                        <div style={{ color: 'var(--primary-400)' }}><CheckIcon /></div>
-                                    </div>
-
-                                    <div className="email-item">
-                                        <div className="email-avatar" style={{ background: '#0078d4' }}>
-                                            <CloudIcon />
-                                        </div>
-                                        <div className="email-content">
-                                            <div className="email-sender">OneDrive</div>
-                                            <div className="email-subject">Microsoft cloud storage</div>
-                                        </div>
-                                    </div>
-
-                                    <div className="email-item">
-                                        <div className="email-avatar" style={{ background: '#4285f4' }}>
-                                            <CloudIcon />
-                                        </div>
-                                        <div className="email-content">
-                                            <div className="email-sender">Google Drive</div>
-                                            <div className="email-subject">Google cloud storage</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                        <div className="card">
+                            <h4 style={{ marginBottom: 'var(--space-2)' }}>{t('howItWorks.step2.title')}</h4>
+                            <p>{t('howItWorks.step2.desc')}</p>
+                        </div>
+                        <div className="card">
+                            <h4 style={{ marginBottom: 'var(--space-2)' }}>{t('howItWorks.step3.title')}</h4>
+                            <p>{t('howItWorks.step3.desc')}</p>
                         </div>
                     </div>
                 </div>
@@ -484,12 +311,12 @@ export default function HomePage() {
             <section id="pricing" className="py-24">
                 <div className="container">
                     <div className="text-center mb-12">
-                        <h2>Simple, Transparent <span className="text-gradient">Pricing</span></h2>
-                        <p style={{ marginTop: 'var(--space-4)' }}>Start free, upgrade when you need more power.</p>
+                        <h2>{t('pricing.title')} <span className="text-gradient">{t('pricing.titleGradient')}</span></h2>
+                        <p style={{ marginTop: 'var(--space-4)' }}>{t('pricing.subtitle')}</p>
 
                         {/* Billing Toggle */}
                         <div className="flex justify-center items-center gap-4 mt-8">
-                            <span style={{ color: billingCycle === 'monthly' ? 'white' : 'var(--gray-400)' }}>Monthly</span>
+                            <span style={{ color: billingCycle === 'monthly' ? 'white' : 'var(--gray-400)' }}>{t('pricing.monthly')}</span>
                             <button
                                 onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
                                 style={{
@@ -515,64 +342,47 @@ export default function HomePage() {
                                 }} />
                             </button>
                             <span style={{ color: billingCycle === 'yearly' ? 'white' : 'var(--gray-400)' }}>
-                                Yearly <span className="badge badge-success" style={{ marginLeft: 'var(--space-2)' }}>Save 20%</span>
+                                {t('pricing.yearly')} <span className="badge badge-success" style={{ marginLeft: 'var(--space-2)' }}>{t('pricing.save')}</span>
                             </span>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-3 gap-6">
-                        {pricingPlans.map((plan, index) => (
-                            <div
-                                key={index}
-                                className="card"
-                                style={{
-                                    border: plan.popular ? '2px solid var(--primary-500)' : undefined,
-                                    position: 'relative'
-                                }}
-                            >
-                                {plan.popular && (
-                                    <div className="badge badge-primary" style={{
-                                        position: 'absolute',
-                                        top: '-12px',
-                                        left: '50%',
-                                        transform: 'translateX(-50%)'
-                                    }}>
-                                        Most Popular
-                                    </div>
-                                )}
-
-                                <h4>{plan.name}</h4>
-                                <p style={{ fontSize: '0.875rem', marginBottom: 'var(--space-4)' }}>{plan.description}</p>
-
-                                <div style={{ marginBottom: 'var(--space-6)' }}>
-                                    <span style={{ fontSize: '3rem', fontWeight: 700, color: 'white' }}>{plan.price}</span>
-                                    <span style={{ color: 'var(--gray-400)' }}>{plan.period}</span>
-                                </div>
-
-                                <ul style={{ listStyle: 'none', marginBottom: 'var(--space-6)' }}>
-                                    {plan.features.map((feature, fIndex) => (
-                                        <li key={fIndex} className="flex items-center gap-2" style={{ marginBottom: 'var(--space-3)' }}>
-                                            <span style={{ color: 'var(--success-500)' }}><CheckIcon /></span>
-                                            <span style={{ color: 'var(--gray-300)' }}>{feature}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-
-                                <button
-                                    className={`btn ${plan.popular ? 'btn-primary' : 'btn-secondary'}`}
-                                    style={{ width: '100%' }}
-                                    onClick={() => {
-                                        if (plan.name === 'Free') {
-                                            document.getElementById('login-section').scrollIntoView({ behavior: 'smooth' });
-                                        } else {
-                                            handleBuyPro();
-                                        }
-                                    }}
-                                >
-                                    {plan.name === 'Free' ? 'Get Started' : plan.cta}
-                                </button>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {/* Free Plan */}
+                        <div className="card">
+                            <h4>{t('pricing.plans.free.name')}</h4>
+                            <p style={{ fontSize: '0.875rem', marginBottom: 'var(--space-4)' }}>{t('pricing.plans.free.desc')}</p>
+                            <div style={{ marginBottom: 'var(--space-6)' }}>
+                                <span style={{ fontSize: '3rem', fontWeight: 700, color: 'white' }}>$0</span>
                             </div>
-                        ))}
+                            <button className="btn btn-secondary" style={{ width: '100%' }} onClick={() => document.getElementById('login-section').scrollIntoView()}>
+                                {t('pricing.plans.free.cta')}
+                            </button>
+                        </div>
+
+                        {/* Pro Plan */}
+                        <div className="card" style={{ border: '2px solid var(--primary-500)' }}>
+                            <h4>{t('pricing.plans.pro.name')}</h4>
+                            <p style={{ fontSize: '0.875rem', marginBottom: 'var(--space-4)' }}>{t('pricing.plans.pro.desc')}</p>
+                            <div style={{ marginBottom: 'var(--space-6)' }}>
+                                <span style={{ fontSize: '3rem', fontWeight: 700, color: 'white' }}>{billingCycle === 'monthly' ? '$5' : '$4'}</span>
+                            </div>
+                            <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleBuyPro}>
+                                {t('pricing.plans.pro.cta')}
+                            </button>
+                        </div>
+
+                        {/* Business Plan */}
+                        <div className="card">
+                            <h4>{t('pricing.plans.business.name')}</h4>
+                            <p style={{ fontSize: '0.875rem', marginBottom: 'var(--space-4)' }}>{t('pricing.plans.business.desc')}</p>
+                            <div style={{ marginBottom: 'var(--space-6)' }}>
+                                <span style={{ fontSize: '3rem', fontWeight: 700, color: 'white' }}>{billingCycle === 'monthly' ? '$15' : '$12'}</span>
+                            </div>
+                            <button className="btn btn-secondary" style={{ width: '100%' }}>
+                                {t('pricing.plans.business.cta')}
+                            </button>
+                        </div>
                     </div>
 
                     <div className="text-center mt-8">
@@ -581,7 +391,7 @@ export default function HomePage() {
                             style={{ background: 'none', border: 'none', color: 'var(--gray-400)', textDecoration: 'underline', cursor: 'pointer' }}
                             onClick={() => setShowVerificationModal(true)}
                         >
-                            Already paid? Verify Receipt
+                            {t('pricing.verify')}
                         </button>
                     </div>
                 </div>
@@ -594,38 +404,28 @@ export default function HomePage() {
                         background: 'var(--gradient-primary)',
                         padding: 'var(--space-16)'
                     }}>
-                        <h2 style={{ marginBottom: 'var(--space-4)' }}>Ready to Free Up Your Inbox?</h2>
-                        <p style={{ color: 'rgba(255,255,255,0.8)', marginBottom: 'var(--space-8)', maxWidth: '500px', margin: '0 auto var(--space-8)' }}>
-                            Join thousands of Outlook users who have reclaimed their email storage.
-                            Start for free, no credit card required.
-                        </p>
-                        <div className="flex gap-4 justify-center items-center" style={{ flexWrap: 'wrap' }}>
+                        <h2 style={{ marginBottom: 'var(--space-4)' }}>{t('hero.title')}</h2>
+                        <div className="flex gap-4 justify-center items-center flex-wrap">
                             <button className="btn btn-lg" style={{
                                 background: 'white',
                                 color: 'var(--primary-700)'
                             }} onClick={handleMicrosoftSignIn}>
-                                <MicrosoftIcon /> Outlook
+                                <MicrosoftIcon /> {t('nav.outlook')}
                             </button>
                             <button className="btn btn-lg" style={{
                                 background: 'white',
                                 color: '#333'
                             }} onClick={handleGoogleSignIn}>
-                                <GoogleIcon /> Gmail
+                                <GoogleIcon /> {t('nav.gmail')}
                             </button>
                         </div>
-                        <p style={{ marginTop: 'var(--space-6)', fontSize: '0.875rem', color: 'rgba(255,255,255,0.6)' }}>
-                            Using a work account?{' '}
-                            <Link href="/request-approval" style={{ color: 'white', textDecoration: 'underline' }}>
-                                Request IT approval
-                            </Link>
-                        </p>
                     </div>
                 </div>
             </section>
 
             {/* Footer */}
             <footer className="py-8" style={{ borderTop: '1px solid var(--glass-border)' }}>
-                <div className="container flex justify-between items-center">
+                <div className="container flex justify-between items-center bg-transparent flex-wrap gap-4">
                     <div className="flex items-center gap-3">
                         <div style={{
                             background: 'var(--gradient-primary)',
@@ -635,13 +435,13 @@ export default function HomePage() {
                         }}>
                             <AlmanacIcon />
                         </div>
-                        <span style={{ color: 'var(--gray-400)' }}>© 2026 MailManac. All rights reserved.</span>
+                        <span style={{ color: 'var(--gray-400)' }}>© 2026 MailManac. {t('footer.rights')}</span>
                     </div>
 
-                    <div className="flex gap-6">
-                        <Link href="/privacy" style={{ color: 'var(--gray-400)', fontSize: '0.875rem' }}>Privacy Policy</Link>
-                        <Link href="/terms" style={{ color: 'var(--gray-400)', fontSize: '0.875rem' }}>Terms of Service</Link>
-                        <Link href="/request-approval" style={{ color: 'var(--gray-400)', fontSize: '0.875rem' }}>Work Accounts</Link>
+                    <div className="flex gap-6 flex-wrap">
+                        <Link href="/privacy" style={{ color: 'var(--gray-400)', fontSize: '0.875rem' }}>{t('footer.privacy')}</Link>
+                        <Link href="/terms" style={{ color: 'var(--gray-400)', fontSize: '0.875rem' }}>{t('footer.terms')}</Link>
+                        <Link href="/request-approval" style={{ color: 'var(--gray-400)', fontSize: '0.875rem' }}>{t('footer.work')}</Link>
                     </div>
                 </div>
             </footer>

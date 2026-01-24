@@ -1,9 +1,10 @@
+import { LanguageProvider } from './context/LanguageContext';
 import './globals.css';
-import AuthProvider from './components/AuthProvider';
+import { AuthProvider } from './components/AuthProvider';
 
 export const metadata = {
-    title: 'MailManac - An Almanac for Your Mails',
-    description: 'Organize your inbox year by year. Archive emails by year, sender, or folder. Works with Gmail and Outlook.',
+    title: 'MailManac - Email Archiving Simplified',
+    description: 'Organize your inbox by year, sender, or folder.',
     keywords: 'email archiving, Gmail, Outlook, quota management, email organization, email cleanup',
     metadataBase: new URL('https://mailmanac.com'),
     alternates: {
@@ -21,6 +22,9 @@ export const metadata = {
         card: 'summary_large_image',
         title: 'MailManac - An Almanac for Your Mails',
         description: 'Stop fighting quota warnings. Archive emails by year, sender, or folder.',
+    },
+    verification: {
+        google: '2oaKofmhvhSFYrEGGHC92g4TSg_0aw9AoQgckRRBZrk',
     },
 };
 
