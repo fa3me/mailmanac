@@ -95,7 +95,7 @@ async function getGmailPreview(accessToken, sender) {
     // Fetch message details in parallel
     const messagePromises = messageIds.map(msg =>
         fetch(
-            `${GMAIL_API_BASE}/users/me/messages/${msg.id}?format=minimal`,
+            `${GMAIL_API_BASE}/users/me/messages/${msg.id}?format=metadata&metadataHeaders=Subject&metadataHeaders=Date`,
             { headers: { Authorization: `Bearer ${accessToken}` } }
         ).then(r => r.ok ? r.json() : null).catch(() => null)
     );

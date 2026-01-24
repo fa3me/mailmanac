@@ -89,7 +89,7 @@ export default function DashboardLayout({ children }) {
         <div style={{ display: 'flex', minHeight: '100vh' }}>
             {/* Sidebar */}
             <aside className="sidebar">
-                <Link href="/" className="sidebar-logo">
+                <Link href="/dashboard" className="sidebar-logo">
                     <div className="sidebar-logo-icon">
                         <AlmanacIcon />
                     </div>
