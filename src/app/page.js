@@ -307,92 +307,67 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* Pricing Section */}
+            {/* Pricing Section - Free with Optional Donation */}
             <section id="pricing" className="py-24">
                 <div className="container">
                     <div className="text-center mb-12">
-                        <h2>{t('pricing.title')} <span className="text-gradient">{t('pricing.titleGradient')}</span></h2>
-                        <p style={{ marginTop: 'var(--space-4)' }}>{t('pricing.subtitle')}</p>
-
-                        {/* Billing Toggle */}
-                        <div className="flex justify-center items-center gap-4 mt-8">
-                            <span style={{ color: billingCycle === 'monthly' ? 'white' : 'var(--gray-400)' }}>{t('pricing.monthly')}</span>
-                            <button
-                                onClick={() => setBillingCycle(billingCycle === 'monthly' ? 'yearly' : 'monthly')}
-                                style={{
-                                    width: '56px',
-                                    height: '28px',
-                                    background: 'var(--primary-600)',
-                                    borderRadius: 'var(--radius-full)',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                    position: 'relative',
-                                    transition: 'var(--transition-base)'
-                                }}
-                            >
-                                <span style={{
-                                    position: 'absolute',
-                                    width: '22px',
-                                    height: '22px',
-                                    background: 'white',
-                                    borderRadius: '50%',
-                                    top: '3px',
-                                    left: billingCycle === 'monthly' ? '3px' : '31px',
-                                    transition: 'var(--transition-base)'
-                                }} />
-                            </button>
-                            <span style={{ color: billingCycle === 'yearly' ? 'white' : 'var(--gray-400)' }}>
-                                {t('pricing.yearly')} <span className="badge badge-success" style={{ marginLeft: 'var(--space-2)' }}>{t('pricing.save')}</span>
-                            </span>
-                        </div>
+                        <h2>Completely <span className="text-gradient">Free</span></h2>
+                        <p style={{ marginTop: 'var(--space-4)', maxWidth: '600px', margin: 'var(--space-4) auto 0' }}>
+                            MailManac is free for everyone. If you find it useful, consider supporting development with a coffee! ☕
+                        </p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6" style={{ maxWidth: '800px', margin: '0 auto' }}>
                         {/* Free Plan */}
-                        <div className="card">
-                            <h4>{t('pricing.plans.free.name')}</h4>
-                            <p style={{ fontSize: '0.875rem', marginBottom: 'var(--space-4)' }}>{t('pricing.plans.free.desc')}</p>
-                            <div style={{ marginBottom: 'var(--space-6)' }}>
-                                <span style={{ fontSize: '3rem', fontWeight: 700, color: 'white' }}>$0</span>
-                            </div>
-                            <button className="btn btn-secondary" style={{ width: '100%' }} onClick={() => document.getElementById('login-section').scrollIntoView()}>
-                                {t('pricing.plans.free.cta')}
-                            </button>
-                        </div>
-
-                        {/* Pro Plan */}
                         <div className="card" style={{ border: '2px solid var(--primary-500)' }}>
-                            <h4>{t('pricing.plans.pro.name')}</h4>
-                            <p style={{ fontSize: '0.875rem', marginBottom: 'var(--space-4)' }}>{t('pricing.plans.pro.desc')}</p>
-                            <div style={{ marginBottom: 'var(--space-6)' }}>
-                                <span style={{ fontSize: '3rem', fontWeight: 700, color: 'white' }}>{billingCycle === 'monthly' ? '$5' : '$4'}</span>
+                            <div className="flex items-center gap-2" style={{ marginBottom: 'var(--space-4)' }}>
+                                <span style={{ fontSize: '1.5rem' }}>🎁</span>
+                                <h4 style={{ margin: 0 }}>Free Forever</h4>
                             </div>
-                            <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleBuyPro}>
-                                {t('pricing.plans.pro.cta')}
+                            <p style={{ fontSize: '0.875rem', marginBottom: 'var(--space-4)', color: 'var(--gray-400)' }}>
+                                Full access to all features, no limits
+                            </p>
+                            <ul style={{ listStyle: 'none', padding: 0, marginBottom: 'var(--space-6)' }}>
+                                <li style={{ padding: 'var(--space-2) 0', color: 'var(--gray-300)' }}>✅ Unlimited email archiving</li>
+                                <li style={{ padding: 'var(--space-2) 0', color: 'var(--gray-300)' }}>✅ Archive by Year, Sender, Folder</li>
+                                <li style={{ padding: 'var(--space-2) 0', color: 'var(--gray-300)' }}>✅ Find duplicates</li>
+                                <li style={{ padding: 'var(--space-2) 0', color: 'var(--gray-300)' }}>✅ Export to OneDrive / Google Drive</li>
+                                <li style={{ padding: 'var(--space-2) 0', color: 'var(--gray-300)' }}>✅ Gmail & Outlook support</li>
+                            </ul>
+                            <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => document.getElementById('login-section').scrollIntoView({ behavior: 'smooth' })}>
+                                Get Started Free
                             </button>
                         </div>
 
-                        {/* Business Plan */}
-                        <div className="card">
-                            <h4>{t('pricing.plans.business.name')}</h4>
-                            <p style={{ fontSize: '0.875rem', marginBottom: 'var(--space-4)' }}>{t('pricing.plans.business.desc')}</p>
-                            <div style={{ marginBottom: 'var(--space-6)' }}>
-                                <span style={{ fontSize: '3rem', fontWeight: 700, color: 'white' }}>{billingCycle === 'monthly' ? '$15' : '$12'}</span>
+                        {/* Donation Card */}
+                        <div className="card" style={{ background: 'linear-gradient(135deg, rgba(255,193,7,0.1) 0%, rgba(255,152,0,0.1) 100%)' }}>
+                            <div className="flex items-center gap-2" style={{ marginBottom: 'var(--space-4)' }}>
+                                <span style={{ fontSize: '1.5rem' }}>☕</span>
+                                <h4 style={{ margin: 0 }}>Support Development</h4>
                             </div>
-                            <button className="btn btn-secondary" style={{ width: '100%' }}>
-                                {t('pricing.plans.business.cta')}
+                            <p style={{ fontSize: '0.875rem', marginBottom: 'var(--space-4)', color: 'var(--gray-400)' }}>
+                                Help keep MailManac free and improving
+                            </p>
+                            <ul style={{ listStyle: 'none', padding: 0, marginBottom: 'var(--space-6)' }}>
+                                <li style={{ padding: 'var(--space-2) 0', color: 'var(--gray-300)' }}>💜 Support an indie developer</li>
+                                <li style={{ padding: 'var(--space-2) 0', color: 'var(--gray-300)' }}>🚀 Fund new features</li>
+                                <li style={{ padding: 'var(--space-2) 0', color: 'var(--gray-300)' }}>🙏 Optional, not required</li>
+                                <li style={{ padding: 'var(--space-2) 0', color: 'var(--gray-300)' }}>🎉 Get a warm fuzzy feeling</li>
+                                <li style={{ padding: 'var(--space-2) 0', color: 'transparent' }}>‎</li>
+                            </ul>
+                            <button
+                                className="btn"
+                                style={{
+                                    width: '100%',
+                                    background: '#FFDD00',
+                                    color: '#000',
+                                    fontWeight: 600
+                                }}
+                                onClick={handleBuyPro}
+                            >
+                                ☕ Buy Me a Coffee
                             </button>
                         </div>
-                    </div>
-
-                    <div className="text-center mt-8">
-                        <button
-                            className="text-link"
-                            style={{ background: 'none', border: 'none', color: 'var(--gray-400)', textDecoration: 'underline', cursor: 'pointer' }}
-                            onClick={() => setShowVerificationModal(true)}
-                        >
-                            {t('pricing.verify')}
-                        </button>
                     </div>
                 </div>
             </section>
