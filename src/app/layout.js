@@ -5,6 +5,23 @@ export const metadata = {
     title: 'MailManac - An Almanac for Your Mails',
     description: 'Organize your inbox year by year. Archive emails by year, sender, or folder. Works with Gmail and Outlook.',
     keywords: 'email archiving, Gmail, Outlook, quota management, email organization, email cleanup',
+    metadataBase: new URL('https://mailmanac.com'),
+    alternates: {
+        canonical: '/',
+    },
+    openGraph: {
+        title: 'MailManac - An Almanac for Your Mails',
+        description: 'Stop fighting quota warnings. Archive emails by year, sender, or folder. Visual, simple, and secure.',
+        url: 'https://mailmanac.com',
+        siteName: 'MailManac',
+        locale: 'en_US',
+        type: 'website',
+    },
+    twitter: {
+        card: 'summary_large_image',
+        title: 'MailManac - An Almanac for Your Mails',
+        description: 'Stop fighting quota warnings. Archive emails by year, sender, or folder.',
+    },
 };
 
 export default function RootLayout({ children }) {

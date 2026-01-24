@@ -93,8 +93,30 @@ export default function HomePage() {
         router.push('/dashboard');
     };
 
-    const scrollToDemo = () => {
-        document.getElementById('demo-preview')?.scrollIntoView({ behavior: 'smooth' });
+    const [showVerificationModal, setShowVerificationModal] = useState(false);
+    const [verifying, setVerifying] = useState(false);
+
+
+
+    const scrollToHowItWorks = () => {
+        document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const handleBuyPro = () => {
+        window.open('https://buymeacoffee.com/fa3me', '_blank');
+    };
+
+    const handleVerify = () => {
+        setVerifying(true);
+        // Simulate verification delay
+        setTimeout(() => {
+            setVerifying(false);
+            localStorage.setItem('mailmanac_pro', 'true');
+            setShowVerificationModal(false);
+            // Use simple alert or toast for now, simulate confetti later
+            alert('🎉 Verification Successful! Pro features unlocked.');
+            window.location.reload(); // Reload to apply pro state
+        }, 2000);
     };
 
     const features = [
@@ -279,8 +301,8 @@ export default function HomePage() {
                                 Connect Gmail
                             </button>
                         </div>
-                        <button className="btn btn-secondary" onClick={scrollToDemo}>
-                            Watch Demo
+                        <button className="btn btn-secondary" onClick={scrollToHowItWorks}>
+                            How It Works
                         </button>
                     </div>
 
@@ -302,74 +324,47 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* Dashboard Preview */}
-            <section id="demo-preview" className="py-16">
+            {/* How It Works Section */}
+            <section id="how-it-works" className="py-16">
                 <div className="container">
-                    <div className="card" style={{
-                        background: 'linear-gradient(145deg, rgba(99, 102, 241, 0.1) 0%, rgba(17, 17, 27, 0.9) 100%)',
-                        padding: 'var(--space-2)',
-                        borderRadius: 'var(--radius-2xl)'
-                    }}>
-                        <div style={{
-                            background: 'var(--bg-dark)',
-                            borderRadius: 'calc(var(--radius-2xl) - 4px)',
-                            padding: 'var(--space-8)',
-                            minHeight: '400px'
-                        }}>
-                            {/* Mock Dashboard */}
-                            <div className="flex gap-8">
-                                {/* Quota Circle */}
-                                <div className="text-center">
-                                    <div className="quota-ring">
-                                        <svg width="180" height="180" viewBox="0 0 180 180">
-                                            <defs>
-                                                <linearGradient id="quotaGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                                                    <stop offset="0%" stopColor="#6366f1" />
-                                                    <stop offset="100%" stopColor="#a855f7" />
-                                                </linearGradient>
-                                            </defs>
-                                            <circle cx="90" cy="90" r="78" className="quota-ring-bg" />
-                                            <circle
-                                                cx="90" cy="90" r="78"
-                                                className="quota-ring-fill"
-                                                strokeDasharray="367"
-                                                strokeDashoffset="110"
-                                            />
-                                        </svg>
-                                        <div className="quota-text">
-                                            <div className="quota-percentage">78%</div>
-                                            <div className="quota-label">Used</div>
-                                        </div>
-                                    </div>
-                                    <p style={{ marginTop: 'var(--space-4)', color: 'var(--gray-400)' }}>
-                                        39.2 GB of 50 GB
-                                    </p>
-                                </div>
+                    <div className="text-center mb-12">
+                        <h2>How it <span className="text-gradient">Works</span></h2>
+                        <p style={{ marginTop: 'var(--space-4)' }}>Three simple steps to a cleaner inbox.</p>
+                    </div>
 
-                                {/* Stats Grid */}
-                                <div className="grid grid-cols-2 gap-4" style={{ flex: 1 }}>
-                                    <div className="card stat-card">
-                                        <span className="stat-label">Total Emails</span>
-                                        <span className="stat-value">24,847</span>
-                                        <span className="stat-trend positive">↑ 12% this month</span>
-                                    </div>
-                                    <div className="card stat-card">
-                                        <span className="stat-label">Duplicates Found</span>
-                                        <span className="stat-value">1,234</span>
-                                        <span className="stat-trend negative">2.1 GB wasted</span>
-                                    </div>
-                                    <div className="card stat-card">
-                                        <span className="stat-label">Largest Sender</span>
-                                        <span className="stat-value">newsletter@</span>
-                                        <span className="stat-trend negative">4.8 GB</span>
-                                    </div>
-                                    <div className="card stat-card">
-                                        <span className="stat-label">Emails Before 2024</span>
-                                        <span className="stat-value">18,392</span>
-                                        <span className="stat-trend positive">Ready to archive</span>
-                                    </div>
-                                </div>
-                            </div>
+                    <div className="grid grid-cols-3 gap-8 text-center">
+                        <div className="card" style={{ padding: 'var(--space-8)' }}>
+                            <div style={{
+                                width: '64px', height: '64px', background: 'var(--primary-600)',
+                                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                margin: '0 auto var(--space-6)', fontSize: '1.5rem', fontWeight: 'bold'
+                            }}>1</div>
+                            <h4>Connect</h4>
+                            <p style={{ marginTop: 'var(--space-4)', color: 'var(--gray-300)' }}>
+                                Sign in securely with your Gmail or Outlook account. We scan headers, never your passwords.
+                            </p>
+                        </div>
+                        <div className="card" style={{ padding: 'var(--space-8)' }}>
+                            <div style={{
+                                width: '64px', height: '64px', background: 'var(--gradient-primary)',
+                                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                margin: '0 auto var(--space-6)', fontSize: '1.5rem', fontWeight: 'bold'
+                            }}>2</div>
+                            <h4>Select</h4>
+                            <p style={{ marginTop: 'var(--space-4)', color: 'var(--gray-300)' }}>
+                                Choose to export by Year, by Sender, or by Folder. Preview what you are archiving first.
+                            </p>
+                        </div>
+                        <div className="card" style={{ padding: 'var(--space-8)' }}>
+                            <div style={{
+                                width: '64px', height: '64px', background: '#ec4899',
+                                borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                margin: '0 auto var(--space-6)', fontSize: '1.5rem', fontWeight: 'bold'
+                            }}>3</div>
+                            <h4>Export</h4>
+                            <p style={{ marginTop: 'var(--space-4)', color: 'var(--gray-300)' }}>
+                                Download as PDF/ZIP/PST to your computer or save directly to OneDrive/Google Drive.
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -563,17 +558,37 @@ export default function HomePage() {
                                     ))}
                                 </ul>
 
-                                <button className={`btn ${plan.popular ? 'btn-primary' : 'btn-secondary'}`} style={{ width: '100%' }}>
-                                    {plan.cta}
+                                <button
+                                    className={`btn ${plan.popular ? 'btn-primary' : 'btn-secondary'}`}
+                                    style={{ width: '100%' }}
+                                    onClick={() => {
+                                        if (plan.name === 'Free') {
+                                            document.getElementById('login-section').scrollIntoView({ behavior: 'smooth' });
+                                        } else {
+                                            handleBuyPro();
+                                        }
+                                    }}
+                                >
+                                    {plan.name === 'Free' ? 'Get Started' : plan.cta}
                                 </button>
                             </div>
                         ))}
+                    </div>
+
+                    <div className="text-center mt-8">
+                        <button
+                            className="text-link"
+                            style={{ background: 'none', border: 'none', color: 'var(--gray-400)', textDecoration: 'underline', cursor: 'pointer' }}
+                            onClick={() => setShowVerificationModal(true)}
+                        >
+                            Already paid? Verify Receipt
+                        </button>
                     </div>
                 </div>
             </section>
 
             {/* CTA Section */}
-            <section className="py-24">
+            <section id="login-section" className="py-24">
                 <div className="container">
                     <div className="card text-center" style={{
                         background: 'var(--gradient-primary)',

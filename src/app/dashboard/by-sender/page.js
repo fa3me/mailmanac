@@ -165,6 +165,15 @@ export default function BySenderPage() {
         let senderNames = {}; // Map email -> name for folder organization
         onProgress?.(10, 'Finding emails...');
 
+        // Check Pro Status
+        const isPro = localStorage.getItem('mailmanac_pro') === 'true';
+
+        // Limit Check for Free Users
+        if (!isPro && selectedCount > 50) {
+            onProgress?.(10, 'Free plan limited to 50 emails. Upgrading to Pro...');
+            alert('Free plan is limited to 50 emails per export. Only the first 50 will be exported. verify your receipt to unlock unlimited exports!');
+        }
+
         for (const senderEmail of selectedSenders) {
             const sender = senders.find(s => s.email === senderEmail);
             senderNames[senderEmail] = sender?.name || senderEmail;
@@ -187,22 +196,58 @@ export default function BySenderPage() {
             return { error: 'No messages found to export' };
         }
 
-        onProgress?.(30, `Exporting ${allMessageIds.length} emails...`);
-
-        const exportResponse = await fetch('/api/mail/export', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                messageIds: allMessageIds.map(m => m.id),
-                deleteAfterExport,
-            }),
-        });
-
-        const result = await exportResponse.json();
-
-        if (result.error) {
-            return { error: result.error };
+        // Apply Limit for Free Users
+        let messagesToExport = allMessageIds;
+        if (!isPro && allMessageIds.length > 50) {
+            messagesToExport = allMessageIds.slice(0, 50);
         }
+
+        onProgress?.(30, `Exporting ${messagesToExport.length} emails...`);
+
+        // Chunking Logic for API (Batch size 50)
+        const BATCH_SIZE = 50;
+        let allExportedFiles = [];
+        let totalDeleted = 0;
+        let totalErrors = 0;
+
+        for (let i = 0; i < messagesToExport.length; i += BATCH_SIZE) {
+            const batch = messagesToExport.slice(i, i + BATCH_SIZE);
+            const batchNum = Math.floor(i / BATCH_SIZE) + 1;
+            const totalBatches = Math.ceil(messagesToExport.length / BATCH_SIZE);
+
+            if (totalBatches > 1) {
+                onProgress?.(30 + Math.floor((i / messagesToExport.length) * 20), `Exporting batch ${batchNum} of ${totalBatches}...`);
+            }
+
+            const exportResponse = await fetch('/api/mail/export', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messageIds: batch.map(m => m.id),
+                    deleteAfterExport,
+                }),
+            });
+
+            const result = await exportResponse.json();
+
+            if (result.error) {
+                console.error('Batch export error:', result.error);
+                totalErrors += 1;
+                // Continue with other batches if one fails
+            } else {
+                if (result.files) allExportedFiles.push(...result.files);
+                if (result.deleted) totalDeleted += result.deleted;
+                if (result.errors) totalErrors += result.errors;
+            }
+        }
+
+        const result = {
+            success: true,
+            files: allExportedFiles,
+            exported: allExportedFiles.length,
+            deleted: totalDeleted,
+            errors: totalErrors
+        };
 
         let savedPath = '';
 
