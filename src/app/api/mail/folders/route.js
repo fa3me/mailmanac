@@ -55,13 +55,11 @@ async function getOutlookFolders(accessToken) {
 }
 
 async function getGmailLabels(accessToken) {
-    // Fetch all labels with their message counts in one request
+    // Fetch all labels
     const response = await fetch(
         `${GMAIL_API_BASE}/users/me/labels`,
         {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
+            headers: { Authorization: `Bearer ${accessToken}` },
         }
     );
 
@@ -72,22 +70,33 @@ async function getGmailLabels(accessToken) {
     }
 
     const data = await response.json();
-    const systemLabels = ['INBOX', 'SENT', 'DRAFT', 'SPAM', 'TRASH', 'STARRED', 'IMPORTANT'];
+    const systemLabels = ['INBOX', 'SENT', 'DRAFT', 'SPAM', 'TRASH', 'STARRED'];
 
-    // Fetch counts for each important label in parallel
-    const labelIds = (data.labels || [])
-        .filter(label => systemLabels.includes(label.id) || label.type === 'user')
-        .slice(0, 15);
+    // Prioritize system labels and user labels
+    const allLabels = (data.labels || [])
+        .filter(label => systemLabels.includes(label.id) || label.type === 'user');
 
-    const labelPromises = labelIds.map(label =>
-        fetch(`${GMAIL_API_BASE}/users/me/labels/${label.id}`, {
-            headers: { Authorization: `Bearer ${accessToken}` }
-        }).then(r => r.ok ? r.json() : { id: label.id, name: label.name, messagesTotal: 0 })
-    );
+    // Process in batches of 10 to respect rate limits
+    const BATCH_SIZE = 10;
+    const results = [];
 
-    const labelDetails = await Promise.all(labelPromises);
+    for (let i = 0; i < allLabels.length; i += BATCH_SIZE) {
+        const batch = allLabels.slice(i, i + BATCH_SIZE);
+        const batchResults = await Promise.all(batch.map(async (label) => {
+            try {
+                const res = await fetch(`${GMAIL_API_BASE}/users/me/labels/${label.id}`, {
+                    headers: { Authorization: `Bearer ${accessToken}` }
+                });
+                if (res.ok) return await res.json();
+                return { ...label, messagesTotal: 0 };
+            } catch (err) {
+                return { ...label, messagesTotal: 0 };
+            }
+        }));
+        results.push(...batchResults);
+    }
 
-    const folders = labelDetails.map(label => ({
+    const folders = results.map(label => ({
         id: label.id,
         name: label.name || label.id,
         count: label.messagesTotal || 0,

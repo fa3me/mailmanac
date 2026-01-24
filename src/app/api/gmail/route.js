@@ -60,12 +60,11 @@ export async function GET(request) {
         }
 
         // Get recent messages for sender analysis (limited for performance)
+        // Get recent messages for sender analysis (batch optimization)
         const listResponse = await fetch(
-            `${GMAIL_API_BASE}/users/me/messages?maxResults=100`,
+            `${GMAIL_API_BASE}/users/me/messages?maxResults=50`, // Reduced to 50 for speed
             {
-                headers: {
-                    Authorization: `Bearer ${session.accessToken}`,
-                },
+                headers: { Authorization: `Bearer ${session.accessToken}` },
             }
         );
 
@@ -74,34 +73,36 @@ export async function GET(request) {
             const listData = await listResponse.json();
             const messageIds = listData.messages || [];
 
-            // Fetch details for top senders (batch for performance)
-            for (const msg of messageIds.slice(0, 50)) {
-                try {
-                    const msgResponse = await fetch(
-                        `${GMAIL_API_BASE}/users/me/messages/${msg.id}?format=metadata&metadataHeaders=From`,
-                        {
-                            headers: {
-                                Authorization: `Bearer ${session.accessToken}`,
-                            },
+            // Fetch details in parallel chunks to avoid timeouts
+            const CHUNK_SIZE = 10;
+            for (let i = 0; i < messageIds.length; i += CHUNK_SIZE) {
+                const chunk = messageIds.slice(i, i + CHUNK_SIZE);
+                await Promise.all(chunk.map(async (msg) => {
+                    try {
+                        const msgResponse = await fetch(
+                            `${GMAIL_API_BASE}/users/me/messages/${msg.id}?format=metadata&metadataHeaders=From`,
+                            {
+                                headers: { Authorization: `Bearer ${session.accessToken}` },
+                            }
+                        );
+
+                        if (msgResponse.ok) {
+                            const msgData = await msgResponse.json();
+                            const fromHeader = msgData.payload?.headers?.find(h => h.name === 'From')?.value || 'unknown';
+
+                            const emailMatch = fromHeader.match(/<(.+?)>/) || [null, fromHeader];
+                            const senderEmail = emailMatch[1]?.toLowerCase() || fromHeader.toLowerCase();
+                            const senderName = fromHeader.replace(/<.+?>/, '').trim() || senderEmail;
+
+                            if (!senderMap[senderEmail]) {
+                                senderMap[senderEmail] = { email: senderEmail, name: senderName, count: 0 };
+                            }
+                            senderMap[senderEmail].count++;
                         }
-                    );
-
-                    if (msgResponse.ok) {
-                        const msgData = await msgResponse.json();
-                        const fromHeader = msgData.payload?.headers?.find(h => h.name === 'From')?.value || 'unknown';
-
-                        const emailMatch = fromHeader.match(/<(.+?)>/) || [null, fromHeader];
-                        const senderEmail = emailMatch[1]?.toLowerCase() || fromHeader.toLowerCase();
-                        const senderName = fromHeader.replace(/<.+?>/, '').trim() || senderEmail;
-
-                        if (!senderMap[senderEmail]) {
-                            senderMap[senderEmail] = { email: senderEmail, name: senderName, count: 0 };
-                        }
-                        senderMap[senderEmail].count++;
+                    } catch (err) {
+                        // Skip failed messages
                     }
-                } catch (err) {
-                    // Skip failed messages
-                }
+                }));
             }
         }
 
@@ -109,29 +110,45 @@ export async function GET(request) {
             .sort((a, b) => b.count - a.count)
             .slice(0, 10);
 
-        // Get labels (folders)
+        // Get labels (folders) WITH counts
         let labels = [];
         try {
             const labelsResponse = await fetch(
                 `${GMAIL_API_BASE}/users/me/labels`,
                 {
-                    headers: {
-                        Authorization: `Bearer ${session.accessToken}`,
-                    },
+                    headers: { Authorization: `Bearer ${session.accessToken}` },
                 }
             );
 
             if (labelsResponse.ok) {
                 const labelsData = await labelsResponse.json();
-                const systemLabels = ['INBOX', 'SENT', 'DRAFT', 'SPAM', 'TRASH', 'STARRED'];
-                labels = (labelsData.labels || [])
+                const systemLabels = ['INBOX', 'SENT', 'TRASH', 'SPAM', 'DRAFT'];
+
+                // Only fetch details for system labels + top 5 user labels to save time
+                const candidateLabels = (labelsData.labels || [])
                     .filter(l => systemLabels.includes(l.id) || l.type === 'user')
-                    .slice(0, 10)
+                    .slice(0, 12);
+
+                const labelDetails = await Promise.all(candidateLabels.map(async (label) => {
+                    try {
+                        const detailResp = await fetch(`${GMAIL_API_BASE}/users/me/labels/${label.id}`, {
+                            headers: { Authorization: `Bearer ${session.accessToken}` }
+                        });
+                        if (detailResp.ok) return await detailResp.json();
+                        return { ...label, messagesTotal: 0 };
+                    } catch {
+                        return { ...label, messagesTotal: 0 };
+                    }
+                }));
+
+                labels = labelDetails
                     .map(l => ({
                         name: l.name || l.id,
                         count: l.messagesTotal || 0,
                         size: '0',
-                    }));
+                    }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 10);
             }
         } catch (err) {
             console.error('Error fetching labels:', err);
