@@ -1,6 +1,6 @@
 import { LanguageProvider } from './context/LanguageContext';
 import './globals.css';
-import { AuthProvider } from './components/AuthProvider';
+import AuthProvider from './components/AuthProvider';
 
 export const metadata = {
     title: 'MailManac - Email Archiving Simplified',
@@ -39,9 +39,12 @@ export default function RootLayout({ children }) {
             </head>
             <body>
                 <AuthProvider>
-                    {children}
+                    <LanguageProvider>
+                        {children}
+                    </LanguageProvider>
                 </AuthProvider>
             </body>
         </html>
     );
 }
+
