@@ -2,6 +2,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
 
 const GRAPH_API_BASE = 'https://graph.microsoft.com/v1.0';
+const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
     try {

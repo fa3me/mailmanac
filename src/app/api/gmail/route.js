@@ -4,6 +4,8 @@ import { authOptions } from '../auth/[...nextauth]/route';
 const GMAIL_API_BASE = 'https://gmail.googleapis.com/gmail/v1';
 const DRIVE_API_BASE = 'https://www.googleapis.com/drive/v3';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request) {
     try {
         const session = await getServerSession(authOptions);
