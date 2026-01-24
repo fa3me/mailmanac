@@ -103,7 +103,7 @@ export default function HomePage() {
     };
 
     const handleBuyPro = () => {
-        window.open('https://buymeacoffee.com/fa3me', '_blank');
+        window.open('https://buymeacoffee.com/bigsee', '_blank');
     };
 
     const handleVerify = () => {
