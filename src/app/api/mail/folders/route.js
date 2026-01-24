@@ -55,53 +55,64 @@ async function getOutlookFolders(accessToken) {
 }
 
 async function getGmailLabels(accessToken) {
-    // Fetch all labels
-    const response = await fetch(
-        `${GMAIL_API_BASE}/users/me/labels`,
-        {
-            headers: { Authorization: `Bearer ${accessToken}` },
-        }
-    );
-
-    if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Gmail API Error:', response.status, errorText);
-        throw new Error(`Gmail API error: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const systemLabels = ['INBOX', 'SENT', 'DRAFT', 'SPAM', 'TRASH', 'STARRED'];
-
-    // Prioritize system labels and user labels
-    const allLabels = (data.labels || [])
-        .filter(label => systemLabels.includes(label.id) || label.type === 'user');
-
-    // Process in batches of 10 to respect rate limits
-    const BATCH_SIZE = 10;
-    const results = [];
-
-    for (let i = 0; i < allLabels.length; i += BATCH_SIZE) {
-        const batch = allLabels.slice(i, i + BATCH_SIZE);
-        const batchResults = await Promise.all(batch.map(async (label) => {
-            try {
-                const res = await fetch(`${GMAIL_API_BASE}/users/me/labels/${label.id}`, {
-                    headers: { Authorization: `Bearer ${accessToken}` }
-                });
-                if (res.ok) return await res.json();
-                return { ...label, messagesTotal: 0 };
-            } catch (err) {
-                return { ...label, messagesTotal: 0 };
+    try {
+        // Fetch all labels
+        const response = await fetch(
+            `${GMAIL_API_BASE}/users/me/labels`,
+            {
+                headers: { Authorization: `Bearer ${accessToken}` },
             }
-        }));
-        results.push(...batchResults);
+        );
+
+        if (!response.ok) {
+            console.error('Gmail Labels API Error:', response.status);
+            // Fallback: return empty folders instead of throwing, so UI shows specific error message or empty state
+            // But better: Return a mock INBOX if everything fails so user sees something? 
+            // actually, let's throw but handle it in the main GET to return safe empty array
+            throw new Error(`Gmail API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const systemLabels = ['INBOX', 'SENT', 'DRAFT', 'SPAM', 'TRASH', 'STARRED'];
+
+        // Prioritize system labels and user labels
+        const allLabels = (data.labels || [])
+            .filter(label => systemLabels.includes(label.id) || label.type === 'user');
+
+        // Process in small batches
+        const BATCH_SIZE = 5; // Reduced to be safer
+        const results = [];
+
+        for (let i = 0; i < allLabels.length; i += BATCH_SIZE) {
+            const batch = allLabels.slice(i, i + BATCH_SIZE);
+            const batchResults = await Promise.all(batch.map(async (label) => {
+                try {
+                    const res = await fetch(`${GMAIL_API_BASE}/users/me/labels/${label.id}`, {
+                        headers: { Authorization: `Bearer ${accessToken}` }
+                    });
+                    if (res.ok) return await res.json();
+                    return { ...label, messagesTotal: 0 };
+                } catch (err) {
+                    return { ...label, messagesTotal: 0 };
+                }
+            }));
+            results.push(...batchResults);
+            // Tiny delay to be nice to API
+            await new Promise(r => setTimeout(r, 100));
+        }
+
+        const folders = results.map(label => ({
+            id: label.id,
+            name: label.name || label.id,
+            count: label.messagesTotal || 0,
+            size: '0',
+        })).filter(f => f.count > 0 || systemLabels.includes(f.id));
+
+        return Response.json({ folders });
+
+    } catch (error) {
+        console.error('Critical Gmail Folder Error:', error);
+        // Fail gracefully: Return empty list instead of 500
+        return Response.json({ folders: [] });
     }
-
-    const folders = results.map(label => ({
-        id: label.id,
-        name: label.name || label.id,
-        count: label.messagesTotal || 0,
-        size: '0',
-    })).filter(f => f.count > 0 || systemLabels.includes(f.id));
-
-    return Response.json({ folders });
 }
