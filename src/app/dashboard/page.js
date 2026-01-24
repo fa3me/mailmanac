@@ -42,8 +42,31 @@ const LoadingSpinner = () => (
     }} />
 );
 
+const DEMO_DATA = {
+    stats: {
+        storageUsed: '12.4',
+        storageTotal: 50,
+        totalEmails: 15420,
+        inboxCount: 4302,
+    },
+    topSenders: [
+        { name: 'Newsletter Weekly', email: 'news@weekly.com', count: 1205 },
+        { name: 'Amazon Orders', email: 'auto-confirm@amazon.com', count: 854 },
+        { name: 'LinkedIn', email: 'notifications@linkedin.com', count: 642 },
+        { name: 'Jira Notifications', email: 'jira@company.com', count: 521 },
+        { name: 'Slack', email: 'digest@slack.com', count: 489 },
+    ],
+    folders: [
+        { name: 'Inbox', count: 4302, size: '4.2' },
+        { name: 'Promotions', count: 8102, size: '5.1' },
+        { name: 'Updates', count: 2301, size: '1.8' },
+        { name: 'Social', count: 1050, size: '0.9' },
+        { name: 'Sent', count: 3200, size: '2.4' },
+    ]
+};
+
 export default function DashboardPage() {
-    const { data: session } = useSession();
+    const { data: session, status } = useSession();
     const [showArchiveModal, setShowArchiveModal] = useState(false);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -52,6 +75,11 @@ export default function DashboardPage() {
 
     // Fetch real mail data - detect provider
     useEffect(() => {
+        if (status === 'loading') return;
+        if (status === 'unauthenticated') {
+            setLoading(false); // Stop loading, show demo mode
+            return;
+        }
         if (!session || fetchedRef.current) return;
 
         const fetchMailData = async () => {
@@ -101,16 +129,22 @@ export default function DashboardPage() {
         };
 
         fetchMailData();
-    }, [session?.user?.email]);
+        fetchMailData();
+    }, [session?.user?.email, status]);
+
+    // Determine if we are in demo mode
+    const isDemo = status === 'unauthenticated';
+    const currentData = isDemo ? DEMO_DATA : (mailData || { stats: { storageUsed: 0, storageTotal: 50, totalEmails: 0 } });
 
     // Calculate quota
-    const stats = mailData?.stats || { storageUsed: 0, storageTotal: 50, totalEmails: 0 };
+    const stats = currentData.stats;
     const quotaPercentage = (parseFloat(stats.storageUsed) / stats.storageTotal) * 100;
     const circumference = 2 * Math.PI * 78;
     const strokeDashoffset = circumference - (quotaPercentage / 100) * circumference;
 
     // Get user name from session
-    const userName = session?.user?.name?.split(' ')[0] || 'User';
+    const userName = isDemo ? 'Guest' : (session?.user?.name?.split(' ')[0] || 'User');
+
 
     if (loading) {
         return (
@@ -147,11 +181,44 @@ export default function DashboardPage() {
         );
     }
 
-    const topSenders = mailData?.topSenders || [];
-    const folders = mailData?.folders || [];
+    const topSenders = currentData.topSenders || [];
+    const folders = currentData.folders || [];
 
     return (
-        <div>
+        <div style={{ position: 'relative' }}>
+            {/* Demo Mode Overlay */}
+            {isDemo && (
+                <div style={{
+                    position: 'absolute',
+                    top: 0, left: 0, right: 0, bottom: 0,
+                    zIndex: 20,
+                    backdropFilter: 'blur(8px)',
+                    background: 'rgba(0,0,0,0.4)',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 'var(--radius-2xl)'
+                }}>
+                    <div className="card text-center" style={{
+                        padding: 'var(--space-8)',
+                        maxWidth: '400px',
+                        background: 'var(--bg-dark)',
+                        border: '1px solid var(--primary-500)',
+                        boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)'
+                    }}>
+                        <h2 style={{ marginBottom: 'var(--space-4)' }}>Connect Your Inbox</h2>
+                        <p style={{ marginBottom: 'var(--space-6)', color: 'var(--gray-300)' }}>
+                            Connect your Gmail or Outlook to see your actual stats, find duplicates, and free up space.
+                        </p>
+                        <div className="flex flex-col gap-3">
+                            <button className="btn btn-primary" onClick={() => window.location.href = '/'}>
+                                Connect Account
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Header */}
             <div className="flex justify-between items-center mb-8">
                 <div>
