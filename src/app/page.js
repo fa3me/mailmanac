@@ -99,7 +99,7 @@ export default function HomePage() {
     };
 
     const handleBuyPro = () => {
-        window.open('https://buymeacoffee.com/bigsee', '_blank');
+        window.open('https://buymeacoffee.com/MailManac', '_blank');
     };
 
     const handleVerify = () => {
